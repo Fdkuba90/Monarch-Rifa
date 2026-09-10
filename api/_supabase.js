@@ -16,9 +16,11 @@ export async function rest(path, { method = 'GET', body, prefer } = {}) {
   const { url, key } = config();
   const headers = {
     apikey: key,
-    Authorization: `Bearer ${key}`,
     'Content-Type': 'application/json',
   };
+  // Las llaves clásicas (service_role) son JWT y van también como Bearer.
+  // Las nuevas (sb_secret_…) solo van en apikey; un Bearer que no es JWT se rechaza.
+  if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`;
   if (prefer) headers.Prefer = prefer;
 
   const controller = new AbortController();

@@ -34,7 +34,7 @@ Sin framework ni dependencias: HTML + JS vanilla y funciones serverless de Node 
 | Variable | Para qué |
 | --- | --- |
 | `SUPABASE_URL` | URL del proyecto, p. ej. `https://xxxx.supabase.co` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Llave `service_role`. Solo la usan las funciones serverless; nunca llega al navegador. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Llave secreta de Supabase (`sb_secret_…` o la clásica `service_role`). Solo la usan las funciones serverless; nunca llega al navegador. |
 | `ADMIN_TOKEN` | Token para abrir el sorteo y consultar `/api/participantes`. Genera uno con `openssl rand -hex 24`. |
 
 Se configuran en Vercel → Project → Settings → Environment Variables (Production).
