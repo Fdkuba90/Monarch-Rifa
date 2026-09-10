@@ -311,7 +311,12 @@
     <button class="b chico fijo" id="btnFull" title="Pantalla completa (F)">Pantalla completa</button>
   </div>
 
-  <h3>Participantes</h3>
+  <h3>¿Entre quiénes se sortea?</h3>
+  <label class="check"><input type="radio" name="fuente" value="monarch" id="fuenteMonarch"> Registrados en el sitio (rifa Monarch)</label>
+  <label class="check"><input type="radio" name="fuente" value="torneo" id="fuenteTorneo"> Lista del torneo (pegada del Excel)</label>
+
+  <div id="bloqueMonarch">
+  <h3>Registrados en el sitio</h3>
   <div class="fila">
     <button class="b" id="btnCargar">Cargar lista del servidor</button>
     <button class="b chico fijo" id="btnSalir" title="Olvidar token">Salir</button>
@@ -324,6 +329,20 @@
   <input type="datetime-local" id="hasta">
   <label class="check"><input type="checkbox" id="sinFiltro"> Ignorar el filtro de fecha</label>
   <label class="check"><input type="checkbox" id="soloWa"> Solo quienes tocaron el botón de WhatsApp</label>
+  </div>
+
+  <div id="bloqueTorneo">
+  <h3>Lista del torneo</h3>
+  <p class="estado">Pega los nombres del Excel, uno por línea (puede ir el celular después de una coma o tabulador, no es obligatorio).</p>
+  <textarea id="pegadoTorneo" placeholder="Juan Pérez&#10;María López&#10;..."></textarea>
+  <div class="fila" style="margin-top:6px">
+    <button class="b chico" id="btnPegarTorneo">Cargar lista</button>
+    <button class="b chico" id="btnVerTorneo">Ver lista cargada</button>
+    <button class="b chico peligro" id="btnBorrarTorneo">Vaciar</button>
+  </div>
+  <p class="estado" id="pegadoTorneoEstado"></p>
+  </div>
+
   <div style="margin-top:12px" class="fila">
     <div class="contador"><span id="cntPool">0</span><small>EN JUEGO</small></div>
     <div class="estado" id="cntDetalle" style="text-align:right"></div>
@@ -370,7 +389,9 @@
 
   // ---------- Estado ----------
   const st = {
-    todos: [],        // [{nombre, celular, creado_en}]
+    todos: [],        // [{nombre, celular, creado_en}] registrados en el sitio
+    torneo: [],       // [{nombre, celular, id}] lista pegada del Excel
+    fuente: 'monarch',
     ganadores: [],    // [{nombre, celular, premio, hora}]
     descartados: [],  // [{nombre, celular, premio, hora}]
     premio: 'Reloj Monarch',
@@ -396,9 +417,13 @@
 
   // ---------- Utilidades ----------
   function soloDigitos(s) { return String(s || '').replace(/\D/g, ''); }
+  function idNombre(n) {
+    return 'n:' + String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  function idDe(p) { return p.id || (p.celular ? 'c:' + p.celular : idNombre(p.nombre)); }
   function ultimos4(cel) {
     const d = soloDigitos(cel);
-    return '•• •••• ' + d.slice(-4);
+    return d ? '•• •••• ' + d.slice(-4) : '';
   }
   function fmtHora(iso) {
     const d = new Date(iso);
@@ -422,7 +447,10 @@
 
   // ---------- Pool ----------
   function pool() {
-    const usados = new Set([...st.ganadores, ...st.descartados].map((g) => g.celular));
+    const usados = new Set([...st.ganadores, ...st.descartados].map((g) => idDe(g)));
+    if (st.fuente === 'torneo') {
+      return st.torneo.filter((p) => !usados.has(idDe(p)));
+    }
     const desde = st.sinFiltro || !st.desde ? -Infinity : new Date(st.desde).getTime();
     const hasta = st.sinFiltro || !st.hasta ? Infinity : new Date(st.hasta).getTime();
     return st.todos.filter((p) => {
@@ -437,12 +465,23 @@
   function pinta() {
     const p = pool();
     $('cntPool').textContent = p.length;
-    const conWa = st.todos.filter((x) => x.whatsapp_en).length;
-    $('cntDetalle').textContent = st.todos.length + ' cargados · ' + conWa + ' con WhatsApp · ' + st.ganadores.length + ' ganaron · ' + st.descartados.length + ' descartados';
+    const torneo = st.fuente === 'torneo';
+    $('bloqueMonarch').style.display = torneo ? 'none' : '';
+    $('bloqueTorneo').style.display = torneo ? '' : 'none';
+    $('fuenteMonarch').checked = !torneo;
+    $('fuenteTorneo').checked = torneo;
+    const gan = st.ganadores.filter((g) => (g.fuente || 'monarch') === st.fuente).length;
+    const des = st.descartados.filter((g) => (g.fuente || 'monarch') === st.fuente).length;
+    if (torneo) {
+      $('cntDetalle').textContent = st.torneo.length + ' en la lista del torneo · ' + gan + ' ganaron · ' + des + ' descartados';
+    } else {
+      const conWa = st.todos.filter((x) => x.whatsapp_en).length;
+      $('cntDetalle').textContent = st.todos.length + ' registrados · ' + conWa + ' con WhatsApp · ' + gan + ' ganaron · ' + des + ' descartados';
+    }
     $('enJuego').textContent = p.length ? p.length + ' participantes en juego' : 'Sin participantes en juego';
     $('btnSortear').disabled = animando || p.length === 0;
     $('btnAusente').disabled = animando || !actual;
-    $('tituloPremio').textContent = st.premio ? 'Rifa · ' + st.premio : 'Rifa Monarch';
+    $('tituloPremio').textContent = st.premio ? 'Rifa · ' + st.premio : (st.fuente === 'torneo' ? 'Rifa del torneo' : 'Rifa Monarch');
 
     const lg = $('listaGanadores');
     lg.innerHTML = '';
@@ -451,7 +490,7 @@
       const li = document.createElement('li');
       li.innerHTML = '<span class="n"></span><span class="m"></span>';
       li.querySelector('.n').textContent = g.nombre;
-      li.querySelector('.m').textContent = g.premio + ' · ' + ultimos4(g.celular);
+      li.querySelector('.m').textContent = g.premio + (g.celular ? ' · ' + ultimos4(g.celular) : '') + ((g.fuente || 'monarch') === 'torneo' ? ' · torneo' : '');
       lg.appendChild(li);
     });
     $('cntGanadores').textContent = st.ganadores.length ? '(' + st.ganadores.length + ')' : '';
@@ -600,19 +639,19 @@
     actual = ganador;
     muestraNombre(ganador.nombre, false);
     vent.classList.add('ganador');
-    st.ganadores.push({ nombre: ganador.nombre, celular: ganador.celular, premio: st.premio || 'Premio', hora: new Date().toISOString() });
+    st.ganadores.push({ nombre: ganador.nombre, celular: ganador.celular || '', id: idDe(ganador), fuente: st.fuente, premio: st.premio || 'Premio', hora: new Date().toISOString() });
     guarda();
     $('resultadoPremio').textContent = ('Ganador · ' + (st.premio || 'Premio')).toUpperCase();
-    $('resultadoTel').innerHTML = '<span>Cel.</span> ' + ultimos4(ganador.celular);
+    $('resultadoTel').innerHTML = ganador.celular ? '<span>Cel.</span> ' + ultimos4(ganador.celular) : '';
     $('resultado').classList.add('visible');
     pinta();
   }
 
   function ausente() {
     if (animando || !actual) return;
-    const i = st.ganadores.findIndex((g) => g.celular === actual.celular);
+    const i = st.ganadores.findIndex((g) => idDe(g) === idDe(actual));
     if (i >= 0) st.ganadores.splice(i, 1);
-    st.descartados.push({ nombre: actual.nombre, celular: actual.celular, premio: st.premio || 'Premio', hora: new Date().toISOString() });
+    st.descartados.push({ nombre: actual.nombre, celular: actual.celular || '', id: idDe(actual), fuente: st.fuente, premio: st.premio || 'Premio', hora: new Date().toISOString() });
     actual = null;
     guarda();
     pinta();
@@ -632,6 +671,8 @@
   $('btnSortear').addEventListener('click', sortear);
   $('btnAusente').addEventListener('click', ausente);
 
+  $('fuenteMonarch').addEventListener('change', () => { st.fuente = 'monarch'; actual = null; guarda(); pinta(); });
+  $('fuenteTorneo').addEventListener('change', () => { st.fuente = 'torneo'; actual = null; guarda(); pinta(); });
   $('premio').addEventListener('input', (e) => { st.premio = e.target.value.trim(); guarda(); pinta(); });
   $('desde').addEventListener('change', (e) => { st.desde = e.target.value; guarda(); pinta(); });
   $('hasta').addEventListener('change', (e) => { st.hasta = e.target.value; guarda(); pinta(); });
@@ -682,6 +723,44 @@
       return { nombre, celular: cel, creado_en: creado_en || new Date().toISOString() };
     }).filter(Boolean);
   }
+  function parseTorneo(txt) {
+    const out = new Map();
+    txt.split(/\r?\n/).forEach((linea) => {
+      linea = linea.trim();
+      if (!linea) return;
+      const partes = linea.split(/[\t,;]/).map((x) => x.trim()).filter((x) => x && !/^\d{1,3}[.)]?$/.test(x)); // fuera "1." o "12)"
+      let nombre = partes[0] || '';
+      let celular = '';
+      for (const p of partes.slice(1)) { const d = soloDigitos(p); if (d.length === 10) { celular = d; break; } }
+      if (!celular) { const m = nombre.match(/^(.*?)[\s]+([\d\s\-()]{10,})$/); if (m && soloDigitos(m[2]).length === 10) { nombre = m[1].trim(); celular = soloDigitos(m[2]); } }
+      nombre = nombre.replace(/^\d+[\.\)]?\s+/, '').replace(/\s+/g, ' ').trim(); // quita "1. " o "12) " del Excel
+      if (nombre.length < 2 || /^(nombre|jugador|participante|name)$/i.test(nombre)) return;
+      const id = celular ? 'c:' + celular : idNombre(nombre);
+      if (!out.has(id)) out.set(id, { nombre, celular, id });
+    });
+    return [...out.values()];
+  }
+  $('btnPegarTorneo').addEventListener('click', () => {
+    const lista = parseTorneo($('pegadoTorneo').value);
+    if (!lista.length) { $('pegadoTorneoEstado').textContent = 'No se reconoció ningún nombre.'; return; }
+    const m = new Map(st.torneo.map((p) => [idDe(p), p]));
+    let nuevos = 0;
+    lista.forEach((p) => { if (!m.has(p.id)) { m.set(p.id, p); nuevos++; } });
+    st.torneo = [...m.values()];
+    st.fuente = 'torneo';
+    guarda(); pinta();
+    $('pegadoTorneoEstado').textContent = nuevos + ' nuevos · ' + st.torneo.length + ' en total en la lista del torneo.';
+    $('pegadoTorneo').value = '';
+  });
+  $('btnVerTorneo').addEventListener('click', () => {
+    $('pegadoTorneo').value = st.torneo.map((p) => p.nombre + (p.celular ? ', ' + p.celular : '')).join('\n');
+  });
+  $('btnBorrarTorneo').addEventListener('click', () => {
+    if (!confirm('¿Vaciar la lista del torneo? Los ganadores ya sorteados se conservan.')) return;
+    st.torneo = []; guarda(); pinta();
+    $('pegadoTorneoEstado').textContent = 'Lista vaciada.';
+  });
+
   $('btnPegar').addEventListener('click', () => {
     const lista = parsePegado($('pegado').value);
     const n = mezcla(lista);

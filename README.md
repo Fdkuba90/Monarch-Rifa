@@ -82,6 +82,10 @@ sorteo y al QR. El link "Staff Monarch" al pie del formulario lleva aquí.
 ## Sorteo (`/sorteo.html`)
 
 - Pide el token una vez, lo guarda en `sessionStorage` y carga la lista.
+- Dos fuentes independientes, con sus propios ganadores: **Registrados en el sitio** (rifa
+  Monarch, con filtros de fecha y WhatsApp) y **Lista del torneo**, que se pega desde Excel
+  (un nombre por línea; acepta numeración, tabuladores y celular opcional; quita duplicados).
+  Sirve para las demás rifas del torneo: quien gana sale de la lista.
 - Filtro por rango de fecha y hora (por defecto, hoy). Casilla para ignorar el filtro.
 - **Sortear** (botón o barra espaciadora): el segundero de la carátula gira y desacelera
   mientras los nombres pasan por la ventanilla, hasta parar en el ganador.
