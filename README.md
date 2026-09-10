@@ -18,11 +18,13 @@ Flujo:
 ```
 index.html              formulario de registro (público)
 sorteo.html             herramienta del sorteo (privada, pide ADMIN_TOKEN)
+staff.html              panel del staff: lista de inscritos en vivo y acceso al sorteo (privado)
 monarch.png             logo
 qr.html                 cartel imprimible con el QR
 qr-monarch.png          QR en PNG (2000 px) para imprenta
 api/registro.js         POST: guarda un registro
 api/participantes.js    GET: lista de participantes, protegido por token
+api/whatsapp.js         POST: marca la hora en que tocaron el botón de WhatsApp
 api/_supabase.js        helper compartido (no es endpoint)
 supabase/migration.sql  tabla `registros`
 vercel.json             cabeceras de seguridad
@@ -63,8 +65,19 @@ Body JSON: `{ "nombre": "Juan Pérez", "celular": "81 1234 5678", "permiso": tru
 
 También acepta `Authorization: Bearer …`. Compara contra `ADMIN_TOKEN` en tiempo constante.
 
-- `200 [{ nombre, celular, creado_en }]` ordenado por fecha
+- `200 [{ nombre, celular, creado_en, whatsapp_en }]` ordenado por fecha
 - `401` sin token o token incorrecto
+
+### `POST /api/whatsapp`
+
+Body JSON: `{ "celular": "8112345678" }`. Marca `whatsapp_en` la primera vez que la persona toca el
+botón del grupo. WhatsApp no informa quién entró al grupo: esto registra el toque del botón, nada más.
+
+## Panel del staff (`/staff.html`)
+
+Pide el token una vez (compartido con el sorteo). Muestra la lista de inscritos en vivo (se
+actualiza cada 8 s), contadores de hoy y de quienes tocaron WhatsApp, filtros, y botones al
+sorteo y al QR. El link "Staff Monarch" al pie del formulario lleva aquí.
 
 ## Sorteo (`/sorteo.html`)
 

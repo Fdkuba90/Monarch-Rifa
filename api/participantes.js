@@ -1,5 +1,5 @@
 // GET /api/participantes?token=…
-// Devuelve [{ nombre, celular, creado_en }] ordenado por fecha.
+// Devuelve [{ nombre, celular, creado_en, whatsapp_en }] ordenado por fecha.
 // Sin token válido responde 401.
 
 import { createHash, timingSafeEqual } from 'node:crypto';
@@ -39,9 +39,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const r = await rest(
-      'registros?select=nombre,celular,creado_en&permiso=eq.true&order=creado_en.asc&limit=5000',
+    let r = await rest(
+      'registros?select=nombre,celular,creado_en,whatsapp_en&permiso=eq.true&order=creado_en.asc&limit=5000',
     );
+    // Si todavía no se corrió la migración 2 (columna whatsapp_en), devolvemos la lista sin ella.
+    if (!r.ok && r.data?.code === '42703') {
+      r = await rest('registros?select=nombre,celular,creado_en&permiso=eq.true&order=creado_en.asc&limit=5000');
+    }
     if (!r.ok || !Array.isArray(r.data)) {
       console.error('Supabase respondió', r.status, r.data);
       return json(res, 502, { error: 'No se pudo leer la lista' });

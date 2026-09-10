@@ -306,6 +306,7 @@
 <aside id="panel">
   <div class="fila">
     <h2>Control</h2>
+    <a class="b chico fijo" href="/staff.html" title="Lista de inscritos">Inscritos</a>
     <button class="b chico fijo" id="btnOcultar" title="Ocultar panel">Ocultar</button>
     <button class="b chico fijo" id="btnFull" title="Pantalla completa (F)">Pantalla completa</button>
   </div>
@@ -322,6 +323,7 @@
   <label class="et" for="hasta">Hasta</label>
   <input type="datetime-local" id="hasta">
   <label class="check"><input type="checkbox" id="sinFiltro"> Ignorar el filtro de fecha</label>
+  <label class="check"><input type="checkbox" id="soloWa"> Solo quienes tocaron el botón de WhatsApp</label>
   <div style="margin-top:12px" class="fila">
     <div class="contador"><span id="cntPool">0</span><small>EN JUEGO</small></div>
     <div class="estado" id="cntDetalle" style="text-align:right"></div>
@@ -372,7 +374,7 @@
     ganadores: [],    // [{nombre, celular, premio, hora}]
     descartados: [],  // [{nombre, celular, premio, hora}]
     premio: 'Reloj Monarch',
-    desde: '', hasta: '', sinFiltro: false,
+    desde: '', hasta: '', sinFiltro: false, soloWa: false,
     cargadoEn: null,
   };
   let actual = null;     // ganador pendiente de confirmar (para "No está presente")
@@ -425,6 +427,7 @@
     const hasta = st.sinFiltro || !st.hasta ? Infinity : new Date(st.hasta).getTime();
     return st.todos.filter((p) => {
       if (usados.has(p.celular)) return false;
+      if (st.soloWa && !p.whatsapp_en) return false;
       const t = new Date(p.creado_en).getTime();
       if (isNaN(t)) return st.sinFiltro; // sin fecha solo entra si se ignora el filtro
       return t >= desde && t <= hasta;
@@ -434,7 +437,8 @@
   function pinta() {
     const p = pool();
     $('cntPool').textContent = p.length;
-    $('cntDetalle').textContent = st.todos.length + ' cargados · ' + st.ganadores.length + ' ganaron · ' + st.descartados.length + ' descartados';
+    const conWa = st.todos.filter((x) => x.whatsapp_en).length;
+    $('cntDetalle').textContent = st.todos.length + ' cargados · ' + conWa + ' con WhatsApp · ' + st.ganadores.length + ' ganaron · ' + st.descartados.length + ' descartados';
     $('enJuego').textContent = p.length ? p.length + ' participantes en juego' : 'Sin participantes en juego';
     $('btnSortear').disabled = animando || p.length === 0;
     $('btnAusente').disabled = animando || !actual;
@@ -475,7 +479,7 @@
       const celular = soloDigitos(r.celular);
       const nombre = String(r.nombre || '').trim();
       if (!celular || !nombre) return;
-      porCel.set(celular, { nombre, celular, creado_en: r.creado_en || null });
+      porCel.set(celular, { nombre, celular, creado_en: r.creado_en || null, whatsapp_en: r.whatsapp_en || null });
     });
     return porCel;
   }
@@ -632,6 +636,7 @@
   $('desde').addEventListener('change', (e) => { st.desde = e.target.value; guarda(); pinta(); });
   $('hasta').addEventListener('change', (e) => { st.hasta = e.target.value; guarda(); pinta(); });
   $('sinFiltro').addEventListener('change', (e) => { st.sinFiltro = e.target.checked; guarda(); pinta(); });
+  $('soloWa').addEventListener('change', (e) => { st.soloWa = e.target.checked; guarda(); pinta(); });
 
   $('btnCargar').addEventListener('click', async () => {
     const t = token();
@@ -741,6 +746,7 @@
   $('desde').value = st.desde;
   $('hasta').value = st.hasta;
   $('sinFiltro').checked = !!st.sinFiltro;
+  $('soloWa').checked = !!st.soloWa;
   $('premio').value = st.premio || '';
   pinta();
   ajustaTamano();

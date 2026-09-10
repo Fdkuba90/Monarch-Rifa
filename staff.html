@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#12100B">
+  <title>Inscritos · Rifa Monarch</title>
+  <style>
+    :root {
+      --noche: #12100B; --noche-2: #1B1811; --oro: #C8A951; --oro-luz: #E8D9A8; --hueso: #EDE7D9; --gris: #8C8474; --rojo: #E0A080; --wa: #25D366;
+      --display: "Didot", "Bodoni MT", "Bodoni 72", "Playfair Display", "Georgia", "Times New Roman", serif;
+      --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--noche); color-scheme: dark; }
+    body {
+      margin: 0; min-height: 100vh; font-family: var(--ui); font-size: 16px; color: var(--hueso);
+      background: radial-gradient(ellipse 120% 50% at 50% -10%, rgba(200,169,81,.16), transparent 60%), var(--noche);
+      -webkit-font-smoothing: antialiased;
+    }
+    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 60px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    header img { width: 130px; height: auto; display: block; }
+    h1 { font-family: var(--display); font-weight: 400; font-size: 28px; color: var(--oro-luz); margin: 0; }
+    .sub { color: var(--gris); font-size: 13px; letter-spacing: .1em; margin: 2px 0 0; }
+
+    .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0; }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 58px; padding: 14px 16px;
+      font: inherit; font-size: 17px; font-weight: 600; border-radius: 12px; border: 0; cursor: pointer; text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-oro { color: var(--noche); background: linear-gradient(180deg, var(--oro-luz), var(--oro)); box-shadow: 0 6px 22px rgba(200,169,81,.25); }
+    .btn-fantasma { color: var(--oro); background: transparent; border: 1px solid rgba(200,169,81,.45); font-weight: 500; }
+
+    .tarjetas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+    .tarjeta { background: var(--noche-2); border: 1px solid rgba(200,169,81,.2); border-radius: 12px; padding: 14px 12px; text-align: center; }
+    .tarjeta .n { font-family: var(--display); font-size: 34px; line-height: 1; color: var(--oro-luz); }
+    .tarjeta .l { font-size: 11px; letter-spacing: .12em; color: var(--gris); margin-top: 6px; text-transform: uppercase; }
+
+    .barra { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 14px; color: var(--gris); }
+    .check { display: flex; gap: 8px; align-items: center; cursor: pointer; color: var(--hueso); }
+    .check input { accent-color: var(--oro); width: 18px; height: 18px; margin: 0; }
+    .estado { min-height: 1.2em; }
+    .estado.err { color: var(--rojo); }
+    .punto { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--wa); margin-right: 6px; box-shadow: 0 0 8px var(--wa); }
+    .punto.off { background: var(--gris); box-shadow: none; }
+
+    ul.lista { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(200,169,81,.15); }
+    ul.lista li {
+      display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center;
+      padding: 12px 4px; border-bottom: 1px solid rgba(200,169,81,.12);
+    }
+    ul.lista li.nuevo { animation: entra .6s ease-out; }
+    @keyframes entra { from { background: rgba(200,169,81,.18); } to { background: transparent; } }
+    .num { color: var(--gris); font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+    .nombre { font-size: 17px; color: var(--hueso); }
+    .meta { font-size: 12.5px; color: var(--gris); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .wa { font-size: 12px; letter-spacing: .06em; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+    .wa.si { color: #0b2a15; background: var(--wa); font-weight: 600; }
+    .wa.no { color: var(--gris); border: 1px solid rgba(140,132,116,.35); }
+    li.vacio { display: block; color: var(--gris); font-style: italic; text-align: center; padding: 28px 0; }
+
+    #acceso { position: fixed; inset: 0; z-index: 10; background: rgba(18,16,11,.97); display: grid; place-items: center; padding: 20px; }
+    #acceso.oculto { display: none; }
+    #acceso form { width: min(400px, 100%); background: var(--noche-2); border: 1px solid rgba(200,169,81,.3); border-radius: 14px; padding: 28px 24px; text-align: center; }
+    #acceso h2 { font-family: var(--display); font-weight: 400; color: var(--oro-luz); font-size: 26px; margin: 0 0 4px; }
+    #acceso p { color: var(--gris); font-size: 13.5px; margin: 0 0 16px; }
+    #acceso input { width: 100%; background: var(--noche); color: var(--hueso); border: 1px solid rgba(200,169,81,.3); border-radius: 8px; padding: 14px; outline: none; margin-bottom: 10px; font: inherit; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    #acceso input:focus { border-color: var(--oro); }
+    #acceso .btn { width: 100%; }
+    #acceso .estado { margin-top: 10px; font-size: 13px; }
+    @media (max-width: 480px) { .tarjeta .n { font-size: 28px; } .acciones { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div id="acceso">
+  <form id="formAcceso">
+    <h2>Staff Monarch</h2>
+    <p>Escribe el token de administrador para ver la lista de inscritos.</p>
+    <input type="password" id="tokenInput" placeholder="ADMIN_TOKEN" autocomplete="off" autofocus>
+    <button class="btn btn-oro" type="submit">Entrar</button>
+    <p class="estado err" id="accesoEstado"></p>
+  </form>
+</div>
+
+<main>
+  <header>
+    <img src="/monarch.png" alt="Monarch Timepieces">
+    <div>
+      <h1>Inscritos a la rifa</h1>
+      <p class="sub">Bebes OPEN · VIII Edición</p>
+    </div>
+  </header>
+
+  <div class="acciones">
+    <a class="btn btn-oro" href="/sorteo.html">Ir al sorteo</a>
+    <a class="btn btn-fantasma" href="/qr.html">Ver el QR</a>
+  </div>
+
+  <div class="tarjetas">
+    <div class="tarjeta"><div class="n" id="cntHoy">0</div><div class="l">Hoy</div></div>
+    <div class="tarjeta"><div class="n" id="cntWa">0</div><div class="l">Tocaron WhatsApp</div></div>
+    <div class="tarjeta"><div class="n" id="cntTotal">0</div><div class="l">Total</div></div>
+  </div>
+
+  <div class="barra">
+    <label class="check"><input type="checkbox" id="soloWa"> Solo quienes tocaron WhatsApp</label>
+    <label class="check"><input type="checkbox" id="soloHoy" checked> Solo hoy</label>
+    <span class="estado" id="estado"><span class="punto off"></span>Cargando…</span>
+  </div>
+
+  <ul class="lista" id="lista"></ul>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const SS_TOKEN = 'monarch_token'; // mismo que sorteo.html: se entra una vez
+  let todos = [];
+  let vistos = new Set();
+  let timer = 0;
+
+  function token() { try { return sessionStorage.getItem(SS_TOKEN) || ''; } catch (e) { return ''; } }
+  function setToken(t) { try { t ? sessionStorage.setItem(SS_TOKEN, t) : sessionStorage.removeItem(SS_TOKEN); } catch (e) {} }
+  function hora(iso) { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }); }
+  function esHoy(iso) { const d = new Date(iso), h = new Date(); return d.toDateString() === h.toDateString(); }
+  function ultimos4(c) { return '•• •••• ' + String(c || '').slice(-4); }
+
+  function pinta(primera) {
+    const soloWa = $('soloWa').checked, soloHoy = $('soloHoy').checked;
+    const hoy = todos.filter((p) => esHoy(p.creado_en));
+    $('cntHoy').textContent = hoy.length;
+    $('cntWa').textContent = hoy.filter((p) => p.whatsapp_en).length;
+    $('cntTotal').textContent = todos.length;
+
+    const lista = todos
+      .filter((p) => (!soloHoy || esHoy(p.creado_en)) && (!soloWa || p.whatsapp_en))
+      .slice().reverse(); // los más recientes arriba
+    const ul = $('lista');
+    ul.innerHTML = '';
+    if (!lista.length) { ul.innerHTML = '<li class="vacio">Todavía no hay inscritos con este filtro.</li>'; }
+    lista.forEach((p, i) => {
+      const li = document.createElement('li');
+      if (!primera && !vistos.has(p.celular)) li.classList.add('nuevo');
+      li.innerHTML = '<div class="num"></div><div><div class="nombre"></div><div class="meta"></div></div><div class="wa"></div>';
+      li.querySelector('.num').textContent = lista.length - i;
+      li.querySelector('.nombre').textContent = p.nombre;
+      li.querySelector('.meta').textContent = hora(p.creado_en) + ' · ' + ultimos4(p.celular);
+      const wa = li.querySelector('.wa');
+      wa.textContent = p.whatsapp_en ? 'WhatsApp ✓' : 'sin WhatsApp';
+      wa.classList.add(p.whatsapp_en ? 'si' : 'no');
+      ul.appendChild(li);
+    });
+    vistos = new Set(todos.map((p) => p.celular));
+  }
+
+  async function carga(t, primera) {
+    try {
+      const ctrl = new AbortController();
+      const to = setTimeout(() => ctrl.abort(), 12000);
+      const r = await fetch('/api/participantes', { headers: { Authorization: 'Bearer ' + t }, cache: 'no-store', signal: ctrl.signal });
+      clearTimeout(to);
+      if (r.status === 401) return { ok: false, auth: true };
+      if (!r.ok) return { ok: false };
+      const datos = await r.json();
+      if (!Array.isArray(datos)) return { ok: false };
+      todos = datos;
+      pinta(primera);
+      $('estado').innerHTML = '<span class="punto"></span>En vivo · ' + hora(new Date().toISOString());
+      $('estado').classList.remove('err');
+      return { ok: true };
+    } catch (e) {
+      $('estado').innerHTML = '<span class="punto off"></span>Sin conexión, reintentando…';
+      $('estado').classList.add('err');
+      return { ok: false };
+    }
+  }
+
+  function arranca(t) {
+    clearInterval(timer);
+    timer = setInterval(() => { if (!document.hidden) carga(t, false); }, 8000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) carga(t, false); });
+  }
+
+  $('soloWa').addEventListener('change', () => pinta(true));
+  $('soloHoy').addEventListener('change', () => pinta(true));
+
+  $('formAcceso').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const t = $('tokenInput').value.trim();
+    if (!t) return;
+    $('accesoEstado').textContent = 'Verificando…';
+    const r = await carga(t, true);
+    if (r.ok) { setToken(t); $('acceso').classList.add('oculto'); arranca(t); return; }
+    $('accesoEstado').textContent = r.auth ? 'Token incorrecto.' : 'No hay conexión. Intenta de nuevo.';
+  });
+
+  (async () => {
+    const t = token();
+    if (!t) return;
+    const r = await carga(t, true);
+    if (r.ok) { $('acceso').classList.add('oculto'); arranca(t); return; }
+    if (r.auth) { setToken(''); $('accesoEstado').textContent = 'Token incorrecto.'; }
+  })();
+})();
+</script>
+</body>
+</html>

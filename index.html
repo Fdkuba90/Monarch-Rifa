@@ -186,6 +186,8 @@
     .aviso-global.visible { display: block; }
     .aviso-global strong { color: var(--rojo); }
 
+    .pie.staff { margin-top: 14px; }
+    .pie.staff a { color: rgba(140,132,116,.6); text-decoration: none; }
     .pie {
       margin-top: 28px;
       text-align: center;
@@ -285,6 +287,7 @@
     </form>
 
     <p class="pie">Un registro por persona · Debes estar presente en la premiación para reclamar el premio</p>
+    <p class="pie staff"><a href="/staff.html">Staff Monarch</a></p>
   </section>
 
   <section id="listo" aria-live="polite">
@@ -371,7 +374,22 @@
     return d.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit' });
   }
 
+  let celularRegistrado = '';
+  document.getElementById('btnWa').addEventListener('click', function () {
+    if (!celularRegistrado) return;
+    // Avisamos que tocó el botón; no bloquea la apertura de WhatsApp.
+    try {
+      fetch('/api/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ celular: celularRegistrado }),
+        keepalive: true,
+      }).catch(function () {});
+    } catch (e) {}
+  });
+
   function muestraListo(datos, resp) {
+    celularRegistrado = datos.celular;
     const pila = datos.nombre.split(' ')[0];
     document.getElementById('nombrePila').textContent = pila;
     const hora = horaLocal(resp && resp.creado_en);

@@ -16,3 +16,7 @@ alter table registros enable row level security;
 -- Sin policies a propósito: la tabla solo se toca con service_role
 -- desde las funciones serverless (/api/registro y /api/participantes).
 -- La anon key no puede leer ni escribir nada.
+
+-- Migración 2: marca la hora en que la persona tocó el botón de WhatsApp.
+-- (WhatsApp no informa quién entró al grupo; esto registra el toque del botón.)
+alter table registros add column if not exists whatsapp_en timestamptz;
