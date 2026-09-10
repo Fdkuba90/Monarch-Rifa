@@ -19,6 +19,8 @@ Flujo:
 index.html              formulario de registro (público)
 sorteo.html             herramienta del sorteo (privada, pide ADMIN_TOKEN)
 monarch.png             logo
+qr.html                 cartel imprimible con el QR
+qr-monarch.png          QR en PNG (2000 px) para imprenta
 api/registro.js         POST: guarda un registro
 api/participantes.js    GET: lista de participantes, protegido por token
 api/_supabase.js        helper compartido (no es endpoint)
