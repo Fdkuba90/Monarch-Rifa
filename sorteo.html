@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#12100B">
+  <title>Sorteo Monarch · Bebes OPEN VIII</title>
+  <style>
+    :root {
+      --noche: #12100B;
+      --noche-2: #1B1811;
+      --oro: #C8A951;
+      --oro-luz: #E8D9A8;
+      --hueso: #EDE7D9;
+      --gris: #8C8474;
+      --rojo: #E0A080;
+      --display: "Didot", "Bodoni MT", "Bodoni 72", "Playfair Display", "Georgia", "Times New Roman", serif;
+      --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --panel-w: 360px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--ui);
+      color: var(--hueso);
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(200,169,81,.14), transparent 65%),
+        var(--noche);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea { font: inherit; }
+
+    /* ---------- Escenario (lo que ve el público) ---------- */
+    #escenario {
+      position: absolute; inset: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      justify-items: center;
+      padding: 3vh 2vw;
+      transition: right .25s ease;
+    }
+    body.panel-abierto #escenario { right: var(--panel-w); }
+
+    .cabecera { text-align: center; }
+    .cabecera img { width: clamp(120px, 14vw, 200px); height: auto; display: block; margin: 0 auto 8px; }
+    .cabecera .torneo { font-size: clamp(11px, 1.1vw, 15px); letter-spacing: .18em; color: var(--gris); margin: 0; }
+    .cabecera h1 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(22px, 3.2vw, 44px);
+      color: var(--oro-luz);
+      margin: 6px 0 0;
+      letter-spacing: .01em;
+      line-height: 1.1;
+    }
+
+    .reloj-wrap {
+      position: relative;
+      width: min(56vh, 90vw, 640px);
+      aspect-ratio: 1;
+      align-self: center;
+    }
+    .reloj-wrap svg { width: 100%; height: 100%; display: block; }
+    .ventanilla {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 72%;
+      height: 19%;
+      border-radius: 10px;
+      border: 1px solid var(--oro);
+      background: linear-gradient(180deg, #1F1B12, #14110B);
+      box-shadow: inset 0 2px 10px rgba(0,0,0,.6), 0 0 0 4px rgba(18,16,11,.9), 0 0 30px rgba(200,169,81,.18);
+      display: grid; place-items: center;
+      overflow: hidden;
+      padding: 0 4%;
+    }
+    .ventanilla .nombre {
+      font-family: var(--display);
+      font-size: clamp(20px, 4.6vh, 52px);
+      line-height: 1.05;
+      color: var(--hueso);
+      text-align: center;
+      white-space: nowrap;
+      letter-spacing: .01em;
+    }
+    .ventanilla .nombre.espera { color: var(--gris); font-size: clamp(14px, 2.4vh, 24px); font-family: var(--ui); letter-spacing: .14em; }
+    .ventanilla.ganador { border-color: var(--oro-luz); box-shadow: inset 0 2px 10px rgba(0,0,0,.6), 0 0 0 4px rgba(18,16,11,.9), 0 0 60px rgba(200,169,81,.55); }
+    .ventanilla.ganador .nombre { color: var(--oro-luz); }
+
+    .pie-escena {
+      text-align: center;
+      min-height: 11vh; padding-top: 1.5vh;
+    }
+    .resultado {
+      opacity: 0;
+      transition: opacity .4s;
+    }
+    .resultado.visible { opacity: 1; }
+    .resultado .premio-lbl { font-size: clamp(12px, 1.2vw, 16px); letter-spacing: .2em; color: var(--oro); margin: 0 0 6px; }
+    .resultado .tel { font-family: var(--display); font-size: clamp(16px, 2vw, 26px); color: var(--hueso); margin: 0; letter-spacing: .12em; }
+    .resultado .tel span { color: var(--gris); }
+    .en-juego { font-size: clamp(12px, 1.1vw, 15px); color: var(--gris); margin: 10px 0 0; letter-spacing: .06em; }
+
+    .btn-panel-flotante {
+      position: fixed; right: 14px; top: 14px; z-index: 5;
+      background: rgba(27,24,17,.85);
+      border: 1px solid rgba(200,169,81,.35);
+      color: var(--oro);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      opacity: .35;
+      transition: opacity .2s;
+    }
+    .btn-panel-flotante:hover, .btn-panel-flotante:focus-visible { opacity: 1; }
+    body.panel-abierto .btn-panel-flotante { display: none; }
+
+    /* ---------- Panel de control ---------- */
+    #panel {
+      position: absolute; top: 0; right: 0; bottom: 0;
+      width: var(--panel-w);
+      background: var(--noche-2);
+      border-left: 1px solid rgba(200,169,81,.25);
+      overflow-y: auto;
+      padding: 16px 16px 40px;
+      transform: translateX(100%);
+      transition: transform .25s ease;
+      font-size: 14px;
+    }
+    body.panel-abierto #panel { transform: none; }
+    #panel h2 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: 20px;
+      color: var(--oro-luz);
+      margin: 0 0 4px;
+    }
+    #panel h3 {
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--oro);
+      margin: 22px 0 8px;
+      font-weight: 600;
+    }
+    .fila { display: flex; gap: 8px; align-items: center; }
+    .fila > * { flex: 1; }
+    .fila > .fijo { flex: none; }
+    #panel label.et { display: block; font-size: 12px; color: var(--gris); margin: 8px 0 4px; }
+    #panel input[type="text"], #panel input[type="password"], #panel input[type="datetime-local"], #panel textarea {
+      width: 100%;
+      background: var(--noche);
+      border: 1px solid rgba(200,169,81,.3);
+      color: var(--hueso);
+      border-radius: 8px;
+      padding: 9px 10px;
+      outline: none;
+      color-scheme: dark;
+    }
+    #panel input:focus, #panel textarea:focus { border-color: var(--oro); }
+    #panel textarea { min-height: 90px; resize: vertical; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+
+    .b {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      border-radius: 8px; border: 1px solid rgba(200,169,81,.4);
+      background: transparent; color: var(--oro);
+      padding: 9px 12px; cursor: pointer; white-space: nowrap;
+      transition: background .15s, transform .08s;
+    }
+    .b:hover { background: rgba(200,169,81,.1); }
+    .b:active { transform: scale(.98); }
+    .b:disabled { opacity: .4; cursor: default; }
+    .b.lleno { background: linear-gradient(180deg, var(--oro-luz), var(--oro)); color: var(--noche); border-color: transparent; font-weight: 600; }
+    .b.grande { width: 100%; padding: 16px; font-size: 20px; border-radius: 12px; letter-spacing: .04em; margin-top: 8px; }
+    .b.peligro { color: var(--rojo); border-color: rgba(224,160,128,.45); }
+    .b.peligro:hover { background: rgba(224,160,128,.1); }
+    .b.chico { padding: 4px 8px; font-size: 12px; }
+
+    .estado { font-size: 12.5px; color: var(--gris); margin: 6px 0 0; min-height: 1.2em; }
+    .estado.err { color: var(--rojo); }
+    .estado.ok { color: var(--oro); }
+    .contador { font-family: var(--display); font-size: 30px; color: var(--oro-luz); line-height: 1; }
+    .contador small { font-family: var(--ui); font-size: 12px; color: var(--gris); letter-spacing: .06em; margin-left: 6px; }
+
+    ul.lista { list-style: none; margin: 0; padding: 0; }
+    ul.lista li {
+      display: flex; justify-content: space-between; gap: 8px; align-items: baseline;
+      padding: 7px 0; border-bottom: 1px solid rgba(200,169,81,.12);
+    }
+    ul.lista li .n { color: var(--hueso); }
+    ul.lista li .m { color: var(--gris); font-size: 12px; white-space: nowrap; }
+    ul.lista li.vacio { color: var(--gris); font-style: italic; border: 0; }
+
+    details summary { cursor: pointer; color: var(--gris); font-size: 12.5px; margin-top: 10px; }
+    .check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--hueso); margin-top: 8px; cursor: pointer; }
+    .check input { accent-color: var(--oro); width: 16px; height: 16px; margin: 0; }
+    .atajo { display: inline-block; border: 1px solid rgba(200,169,81,.35); border-radius: 4px; padding: 0 5px; font-size: 11px; color: var(--gris); font-family: ui-monospace, Menlo, monospace; }
+
+    /* ---------- Acceso ---------- */
+    #acceso {
+      position: fixed; inset: 0; z-index: 10;
+      background: rgba(18,16,11,.96);
+      display: grid; place-items: center;
+      padding: 20px;
+    }
+    #acceso.oculto { display: none; }
+    #acceso form {
+      width: min(400px, 100%);
+      background: var(--noche-2);
+      border: 1px solid rgba(200,169,81,.3);
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+    }
+    #acceso h1 { font-family: var(--display); font-weight: 400; color: var(--oro-luz); font-size: 26px; margin: 0 0 4px; }
+    #acceso p { color: var(--gris); font-size: 13.5px; margin: 0 0 16px; }
+    #acceso input {
+      width: 100%; background: var(--noche); color: var(--hueso);
+      border: 1px solid rgba(200,169,81,.3); border-radius: 8px; padding: 12px; outline: none; margin-bottom: 10px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+    #acceso input:focus { border-color: var(--oro); }
+    #acceso .b { width: 100%; padding: 12px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      #escenario, #panel, .resultado { transition: none; }
+    }
+    @media (max-width: 760px) {
+      :root { --panel-w: 100vw; }
+      body.panel-abierto #escenario { right: 0; visibility: hidden; }
+    }
+  </style>
+</head>
+<body class="panel-abierto">
+
+<div id="acceso">
+  <form id="formAcceso">
+    <h1>Sorteo Monarch</h1>
+    <p>Escribe el token de administrador para cargar la lista de participantes.</p>
+    <input type="password" id="tokenInput" placeholder="ADMIN_TOKEN" autocomplete="off" autofocus>
+    <button class="b lleno" type="submit">Entrar</button>
+    <p class="estado err" id="accesoEstado" style="margin-top:10px"></p>
+  </form>
+</div>
+
+<div id="escenario">
+  <div class="cabecera">
+    <img src="/monarch.png" alt="Monarch Timepieces">
+    <p class="torneo">Bebes OPEN · VIII Edición</p>
+    <h1 id="tituloPremio">Rifa del reloj Monarch</h1>
+  </div>
+
+  <div class="reloj-wrap">
+    <svg viewBox="0 0 400 400" aria-hidden="true">
+      <defs>
+        <radialGradient id="caratula" cx="50%" cy="40%" r="65%">
+          <stop offset="0" stop-color="#211D14"/>
+          <stop offset="1" stop-color="#0F0D09"/>
+        </radialGradient>
+        <linearGradient id="bisel" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#E8D9A8"/>
+          <stop offset=".5" stop-color="#C8A951"/>
+          <stop offset="1" stop-color="#7A652B"/>
+        </linearGradient>
+      </defs>
+      <circle cx="200" cy="200" r="196" fill="url(#bisel)"/>
+      <circle cx="200" cy="200" r="188" fill="#12100B"/>
+      <circle cx="200" cy="200" r="182" fill="url(#caratula)" stroke="#C8A951" stroke-width=".8" stroke-opacity=".5"/>
+      <g id="indices" stroke="#C8A951"></g>
+      <text x="200" y="118" text-anchor="middle" font-family="Didot, 'Bodoni MT', Georgia, serif" font-size="15" letter-spacing="6" fill="#C8A951">MONARCH</text>
+      <text x="200" y="134" text-anchor="middle" font-family="-apple-system, Segoe UI, Arial, sans-serif" font-size="7" letter-spacing="3" fill="#8C8474">TIMEPIECES</text>
+      <text x="200" y="300" text-anchor="middle" font-family="-apple-system, Segoe UI, Arial, sans-serif" font-size="7" letter-spacing="3" fill="#8C8474">MONTERREY</text>
+      <!-- Horario y minutero fijos a las 10:10 -->
+      <g stroke="#E8D9A8" stroke-linecap="round">
+        <line x1="200" y1="200" x2="140" y2="96" stroke-width="7" transform="rotate(0 200 200)"/>
+        <line x1="200" y1="200" x2="278" y2="66" stroke-width="5"/>
+      </g>
+      <!-- Segundero -->
+      <g id="segundero" transform="rotate(0 200 200)">
+        <line x1="200" y1="232" x2="200" y2="34" stroke="#C8A951" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="200" cy="52" r="4" fill="none" stroke="#C8A951" stroke-width="1.6"/>
+        <circle cx="200" cy="200" r="6" fill="#C8A951"/>
+      </g>
+    </svg>
+    <div class="ventanilla" id="ventanilla">
+      <div class="nombre espera" id="nombreVent">LISTOS PARA SORTEAR</div>
+    </div>
+  </div>
+
+  <div class="pie-escena">
+    <div class="resultado" id="resultado">
+      <p class="premio-lbl" id="resultadoPremio">GANADOR</p>
+      <p class="tel" id="resultadoTel"></p>
+    </div>
+    <p class="en-juego" id="enJuego"></p>
+  </div>
+</div>
+
+<button class="btn-panel-flotante" id="btnMostrarPanel" title="Mostrar panel (Esc)">Panel</button>
+
+<aside id="panel">
+  <div class="fila">
+    <h2>Control</h2>
+    <button class="b chico fijo" id="btnOcultar" title="Ocultar panel">Ocultar</button>
+    <button class="b chico fijo" id="btnFull" title="Pantalla completa (F)">Pantalla completa</button>
+  </div>
+
+  <h3>Participantes</h3>
+  <div class="fila">
+    <button class="b" id="btnCargar">Cargar lista del servidor</button>
+    <button class="b chico fijo" id="btnSalir" title="Olvidar token">Salir</button>
+  </div>
+  <p class="estado" id="cargaEstado"></p>
+
+  <label class="et" for="desde">Desde</label>
+  <input type="datetime-local" id="desde">
+  <label class="et" for="hasta">Hasta</label>
+  <input type="datetime-local" id="hasta">
+  <label class="check"><input type="checkbox" id="sinFiltro"> Ignorar el filtro de fecha</label>
+  <div style="margin-top:12px" class="fila">
+    <div class="contador"><span id="cntPool">0</span><small>EN JUEGO</small></div>
+    <div class="estado" id="cntDetalle" style="text-align:right"></div>
+  </div>
+
+  <h3>Premio</h3>
+  <input type="text" id="premio" value="Reloj Monarch" maxlength="60">
+
+  <h3>Sorteo</h3>
+  <button class="b lleno grande" id="btnSortear">Sortear</button>
+  <button class="b peligro" id="btnAusente" style="width:100%;margin-top:8px" disabled>No está presente · sortear otro</button>
+  <p class="estado">Atajos: <span class="atajo">Espacio</span> sortear · <span class="atajo">N</span> no está presente · <span class="atajo">F</span> pantalla completa · <span class="atajo">Esc</span> panel</p>
+
+  <h3>Ganadores <span id="cntGanadores" style="color:var(--gris);font-weight:400"></span></h3>
+  <ul class="lista" id="listaGanadores"></ul>
+  <div class="fila" style="margin-top:8px">
+    <button class="b chico" id="btnCopiar">Copiar ganadores</button>
+    <button class="b chico peligro" id="btnReiniciar">Reiniciar sorteo</button>
+  </div>
+
+  <details>
+    <summary>Descartados por no estar presentes (<span id="cntDescartados">0</span>)</summary>
+    <ul class="lista" id="listaDescartados" style="margin-top:6px"></ul>
+  </details>
+
+  <details>
+    <summary>Respaldo: pegar lista a mano</summary>
+    <p class="estado">Una persona por línea: <code>Nombre, 8112345678</code>. También acepta JSON de /api/participantes. Se combinan con la lista actual por celular.</p>
+    <textarea id="pegado" placeholder="Juan Pérez, 8112345678&#10;María López, 8187654321"></textarea>
+    <div class="fila" style="margin-top:6px">
+      <button class="b chico" id="btnPegar">Agregar a la lista</button>
+      <button class="b chico" id="btnVerLista">Ver lista cargada</button>
+    </div>
+    <p class="estado" id="pegadoEstado"></p>
+  </details>
+</aside>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const LS = 'monarch_sorteo_v1';
+  const SS_TOKEN = 'monarch_token';
+
+  // ---------- Estado ----------
+  const st = {
+    todos: [],        // [{nombre, celular, creado_en}]
+    ganadores: [],    // [{nombre, celular, premio, hora}]
+    descartados: [],  // [{nombre, celular, premio, hora}]
+    premio: 'Reloj Monarch',
+    desde: '', hasta: '', sinFiltro: false,
+    cargadoEn: null,
+  };
+  let actual = null;     // ganador pendiente de confirmar (para "No está presente")
+  let animando = false;
+  let raf = 0;
+
+  // ---------- Persistencia local (para funcionar sin internet) ----------
+  function guarda() {
+    try { localStorage.setItem(LS, JSON.stringify(st)); } catch (e) {}
+  }
+  function carga() {
+    try {
+      const raw = localStorage.getItem(LS);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      Object.assign(st, s);
+    } catch (e) {}
+  }
+
+  // ---------- Utilidades ----------
+  function soloDigitos(s) { return String(s || '').replace(/\D/g, ''); }
+  function ultimos4(cel) {
+    const d = soloDigitos(cel);
+    return '•• •••• ' + d.slice(-4);
+  }
+  function fmtHora(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  }
+  function fmtLocalInput(d) {
+    const p = (n) => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function azar(n) {
+    // Entero uniforme en [0, n) con crypto, sin sesgo por módulo.
+    if (n <= 0) return -1;
+    const max = Math.floor(0x100000000 / n) * n;
+    const buf = new Uint32Array(1);
+    let x;
+    do { crypto.getRandomValues(buf); x = buf[0]; } while (x >= max);
+    return x % n;
+  }
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  // ---------- Pool ----------
+  function pool() {
+    const usados = new Set([...st.ganadores, ...st.descartados].map((g) => g.celular));
+    const desde = st.sinFiltro || !st.desde ? -Infinity : new Date(st.desde).getTime();
+    const hasta = st.sinFiltro || !st.hasta ? Infinity : new Date(st.hasta).getTime();
+    return st.todos.filter((p) => {
+      if (usados.has(p.celular)) return false;
+      const t = new Date(p.creado_en).getTime();
+      if (isNaN(t)) return st.sinFiltro; // sin fecha solo entra si se ignora el filtro
+      return t >= desde && t <= hasta;
+    });
+  }
+
+  function pinta() {
+    const p = pool();
+    $('cntPool').textContent = p.length;
+    $('cntDetalle').textContent = st.todos.length + ' cargados · ' + st.ganadores.length + ' ganaron · ' + st.descartados.length + ' descartados';
+    $('enJuego').textContent = p.length ? p.length + ' participantes en juego' : 'Sin participantes en juego';
+    $('btnSortear').disabled = animando || p.length === 0;
+    $('btnAusente').disabled = animando || !actual;
+    $('tituloPremio').textContent = st.premio ? 'Rifa · ' + st.premio : 'Rifa Monarch';
+
+    const lg = $('listaGanadores');
+    lg.innerHTML = '';
+    if (!st.ganadores.length) lg.innerHTML = '<li class="vacio">Todavía nadie.</li>';
+    st.ganadores.forEach((g) => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="n"></span><span class="m"></span>';
+      li.querySelector('.n').textContent = g.nombre;
+      li.querySelector('.m').textContent = g.premio + ' · ' + ultimos4(g.celular);
+      lg.appendChild(li);
+    });
+    $('cntGanadores').textContent = st.ganadores.length ? '(' + st.ganadores.length + ')' : '';
+
+    const ld = $('listaDescartados');
+    ld.innerHTML = '';
+    if (!st.descartados.length) ld.innerHTML = '<li class="vacio">Ninguno.</li>';
+    st.descartados.forEach((g) => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="n"></span><span class="m"></span>';
+      li.querySelector('.n').textContent = g.nombre;
+      li.querySelector('.m').textContent = g.premio + ' · ' + fmtHora(g.hora);
+      ld.appendChild(li);
+    });
+    $('cntDescartados').textContent = st.descartados.length;
+  }
+
+  // ---------- Carga del servidor ----------
+  function token() { try { return sessionStorage.getItem(SS_TOKEN) || ''; } catch (e) { return ''; } }
+  function setToken(t) { try { t ? sessionStorage.setItem(SS_TOKEN, t) : sessionStorage.removeItem(SS_TOKEN); } catch (e) {} }
+
+  function normaliza(lista) {
+    const porCel = new Map();
+    lista.forEach((r) => {
+      const celular = soloDigitos(r.celular);
+      const nombre = String(r.nombre || '').trim();
+      if (!celular || !nombre) return;
+      porCel.set(celular, { nombre, celular, creado_en: r.creado_en || null });
+    });
+    return porCel;
+  }
+
+  function mezcla(nuevos) {
+    const m = normaliza(st.todos);
+    let agregados = 0;
+    normaliza(nuevos).forEach((v, k) => { if (!m.has(k)) agregados++; m.set(k, v); });
+    st.todos = [...m.values()].sort((a, b) => new Date(a.creado_en || 0) - new Date(b.creado_en || 0));
+    return agregados;
+  }
+
+  async function cargarServidor(t) {
+    const est = $('cargaEstado');
+    est.className = 'estado';
+    est.textContent = 'Cargando…';
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12000);
+      const r = await fetch('/api/participantes', {
+        headers: { Authorization: 'Bearer ' + t },
+        cache: 'no-store',
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
+      if (r.status === 401) return { ok: false, auth: true };
+      if (!r.ok) return { ok: false };
+      const datos = await r.json();
+      if (!Array.isArray(datos)) return { ok: false };
+      st.todos = [...normaliza(datos).values()];
+      st.cargadoEn = new Date().toISOString();
+      guarda();
+      est.className = 'estado ok';
+      est.textContent = st.todos.length + ' registros · actualizado ' + fmtHora(st.cargadoEn);
+      pinta();
+      return { ok: true };
+    } catch (e) {
+      return { ok: false };
+    }
+  }
+
+  function estadoCargaOffline() {
+    const est = $('cargaEstado');
+    est.className = 'estado err';
+    est.textContent = st.todos.length
+      ? 'Sin conexión. Se usa la lista guardada (' + st.todos.length + ', de las ' + fmtHora(st.cargadoEn) + ').'
+      : 'Sin conexión y sin lista guardada. Pega la lista a mano (abajo).';
+  }
+
+  // ---------- Animación ----------
+  const seg = $('segundero');
+  const vent = $('ventanilla');
+  const nombreVent = $('nombreVent');
+
+  function ajustaTamano() {
+    // Reduce el tamaño si el nombre no cabe en la ventanilla.
+    nombreVent.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(nombreVent).fontSize);
+    let intentos = 0;
+    while (nombreVent.scrollWidth > vent.clientWidth * 0.92 && intentos < 12) {
+      size *= 0.9;
+      nombreVent.style.fontSize = size + 'px';
+      intentos++;
+    }
+  }
+  function muestraNombre(texto, espera) {
+    nombreVent.classList.toggle('espera', !!espera);
+    nombreVent.textContent = texto;
+    ajustaTamano();
+  }
+  function setAngulo(deg) {
+    seg.setAttribute('transform', 'rotate(' + (deg % 360) + ' 200 200)');
+  }
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3.2);
+
+  function sortear() {
+    if (animando) return;
+    const p = pool();
+    if (!p.length) return;
+
+    const idx = azar(p.length);
+    const ganador = p[idx];
+    actual = null;
+    vent.classList.remove('ganador');
+    $('resultado').classList.remove('visible');
+    animando = true;
+    pinta();
+
+    const reducido = reduceMotion.matches;
+    const dur = reducido ? 900 : 6500 + azar(1500);
+    const vueltas = reducido ? 0 : 4 + azar(3);
+    const anguloFinal = azar(360);
+    const total = vueltas * 360 + anguloFinal;   // grados totales
+    const paso = reducido ? 1 : 24;              // cada 24° cambia el nombre
+    const ticksTotales = reducido ? 8 : Math.floor(total / paso);
+    // Alineamos el ciclo para que el último tick caiga en el ganador.
+    const offset = ((idx - ticksTotales) % p.length + p.length) % p.length;
+    const t0 = performance.now();
+    let ultimoTick = -1;
+
+    function frame(now) {
+      const t = Math.min(1, (now - t0) / dur);
+      const e = easeOut(t);
+      if (!reducido) setAngulo(e * total);
+      const tick = Math.min(ticksTotales, Math.floor(e * ticksTotales));
+      if (tick !== ultimoTick) {
+        ultimoTick = tick;
+        muestraNombre(p[(offset + tick) % p.length].nombre, false);
+      }
+      if (t < 1) { raf = requestAnimationFrame(frame); return; }
+      termina(ganador);
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function termina(ganador) {
+    animando = false;
+    actual = ganador;
+    muestraNombre(ganador.nombre, false);
+    vent.classList.add('ganador');
+    st.ganadores.push({ nombre: ganador.nombre, celular: ganador.celular, premio: st.premio || 'Premio', hora: new Date().toISOString() });
+    guarda();
+    $('resultadoPremio').textContent = ('Ganador · ' + (st.premio || 'Premio')).toUpperCase();
+    $('resultadoTel').innerHTML = '<span>Cel.</span> ' + ultimos4(ganador.celular);
+    $('resultado').classList.add('visible');
+    pinta();
+  }
+
+  function ausente() {
+    if (animando || !actual) return;
+    const i = st.ganadores.findIndex((g) => g.celular === actual.celular);
+    if (i >= 0) st.ganadores.splice(i, 1);
+    st.descartados.push({ nombre: actual.nombre, celular: actual.celular, premio: st.premio || 'Premio', hora: new Date().toISOString() });
+    actual = null;
+    guarda();
+    pinta();
+    if (pool().length) sortear();
+    else muestraNombre('NO QUEDAN PARTICIPANTES', true);
+  }
+
+  // ---------- Controles ----------
+  function abrePanel(abierto) { document.body.classList.toggle('panel-abierto', abierto); setTimeout(ajustaTamano, 300); }
+  $('btnOcultar').addEventListener('click', () => abrePanel(false));
+  $('btnMostrarPanel').addEventListener('click', () => abrePanel(true));
+  $('btnFull').addEventListener('click', toggleFull);
+  function toggleFull() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+  }
+  $('btnSortear').addEventListener('click', sortear);
+  $('btnAusente').addEventListener('click', ausente);
+
+  $('premio').addEventListener('input', (e) => { st.premio = e.target.value.trim(); guarda(); pinta(); });
+  $('desde').addEventListener('change', (e) => { st.desde = e.target.value; guarda(); pinta(); });
+  $('hasta').addEventListener('change', (e) => { st.hasta = e.target.value; guarda(); pinta(); });
+  $('sinFiltro').addEventListener('change', (e) => { st.sinFiltro = e.target.checked; guarda(); pinta(); });
+
+  $('btnCargar').addEventListener('click', async () => {
+    const t = token();
+    if (!t) { $('acceso').classList.remove('oculto'); return; }
+    const r = await cargarServidor(t);
+    if (!r.ok) {
+      if (r.auth) { setToken(''); $('accesoEstado').textContent = 'Token incorrecto.'; $('acceso').classList.remove('oculto'); }
+      else estadoCargaOffline();
+    }
+  });
+  $('btnSalir').addEventListener('click', () => { setToken(''); $('acceso').classList.remove('oculto'); $('tokenInput').value = ''; });
+
+  $('btnCopiar').addEventListener('click', async () => {
+    const txt = st.ganadores.map((g) => [g.premio, g.nombre, g.celular, fmtHora(g.hora)].join('\t')).join('\n');
+    try { await navigator.clipboard.writeText(txt); $('btnCopiar').textContent = 'Copiado'; }
+    catch (e) { prompt('Copia la lista:', txt); }
+    setTimeout(() => { $('btnCopiar').textContent = 'Copiar ganadores'; }, 1500);
+  });
+  $('btnReiniciar').addEventListener('click', () => {
+    if (!confirm('¿Borrar ganadores y descartados? La lista de participantes se conserva.')) return;
+    st.ganadores = []; st.descartados = []; actual = null;
+    vent.classList.remove('ganador'); $('resultado').classList.remove('visible');
+    muestraNombre('LISTOS PARA SORTEAR', true);
+    guarda(); pinta();
+  });
+
+  function parsePegado(txt) {
+    txt = txt.trim();
+    if (!txt) return [];
+    if (txt[0] === '[') { try { return JSON.parse(txt); } catch (e) { return []; } }
+    return txt.split(/\r?\n/).map((linea) => {
+      const partes = linea.split(/[,\t;]/).map((s) => s.trim());
+      let nombre, celular, creado_en = null;
+      if (partes.length >= 2) {
+        nombre = partes[0]; celular = partes[1]; creado_en = partes[2] || null;
+      } else {
+        const m = linea.match(/^(.*?)[\s]+([\d\s\-()]{10,})$/);
+        if (!m) return null;
+        nombre = m[1]; celular = m[2];
+      }
+      const cel = soloDigitos(celular);
+      if (!nombre || cel.length !== 10) return null;
+      return { nombre, celular: cel, creado_en: creado_en || new Date().toISOString() };
+    }).filter(Boolean);
+  }
+  $('btnPegar').addEventListener('click', () => {
+    const lista = parsePegado($('pegado').value);
+    const n = mezcla(lista);
+    guarda(); pinta();
+    $('pegadoEstado').textContent = lista.length ? n + ' nuevos agregados (' + lista.length + ' leídos).' : 'No se reconoció ninguna línea.';
+    if (lista.length) $('pegado').value = '';
+  });
+  $('btnVerLista').addEventListener('click', () => {
+    $('pegado').value = st.todos.map((p) => [p.nombre, p.celular, p.creado_en || ''].join(', ')).join('\n');
+  });
+
+  $('formAcceso').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const t = $('tokenInput').value.trim();
+    if (!t) return;
+    $('accesoEstado').textContent = 'Verificando…';
+    const r = await cargarServidor(t);
+    if (r.ok) { setToken(t); $('acceso').classList.add('oculto'); $('accesoEstado').textContent = ''; return; }
+    if (r.auth) { $('accesoEstado').textContent = 'Token incorrecto.'; return; }
+    // Sin red: dejamos entrar con lo guardado localmente, si hay.
+    setToken(t);
+    $('acceso').classList.add('oculto');
+    estadoCargaOffline();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const enCampo = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+    if (!$('acceso').classList.contains('oculto')) return;
+    if (e.code === 'Space' && !enCampo) { e.preventDefault(); sortear(); }
+    else if ((e.key === 'n' || e.key === 'N') && !enCampo) { ausente(); }
+    else if ((e.key === 'f' || e.key === 'F') && !enCampo) { toggleFull(); }
+    else if (e.key === 'Escape') { abrePanel(!document.body.classList.contains('panel-abierto')); }
+  });
+  window.addEventListener('resize', ajustaTamano);
+  window.addEventListener('beforeunload', (e) => { if (animando) { e.preventDefault(); e.returnValue = ''; } });
+
+  // ---------- Índices del reloj ----------
+  (function indices() {
+    const g = $('indices');
+    let s = '';
+    for (let i = 0; i < 60; i++) {
+      const mayor = i % 5 === 0;
+      const r1 = mayor ? 160 : 168, r2 = 176;
+      const a = (i * 6) * Math.PI / 180;
+      const x1 = 200 + r1 * Math.sin(a), y1 = 200 - r1 * Math.cos(a);
+      const x2 = 200 + r2 * Math.sin(a), y2 = 200 - r2 * Math.cos(a);
+      s += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) +
+           '" stroke-width="' + (mayor ? 3 : 1) + '" stroke-opacity="' + (mayor ? 1 : .55) + '"/>';
+    }
+    g.innerHTML = s;
+  })();
+
+  // ---------- Arranque ----------
+  carga();
+  if (!st.desde || !st.hasta) {
+    const hoy = new Date();
+    const ini = new Date(hoy); ini.setHours(0, 0, 0, 0);
+    const fin = new Date(hoy); fin.setHours(23, 59, 0, 0);
+    st.desde = st.desde || fmtLocalInput(ini);
+    st.hasta = st.hasta || fmtLocalInput(fin);
+  }
+  $('desde').value = st.desde;
+  $('hasta').value = st.hasta;
+  $('sinFiltro').checked = !!st.sinFiltro;
+  $('premio').value = st.premio || '';
+  pinta();
+  ajustaTamano();
+
+  (async () => {
+    const t = token();
+    if (!t) return; // se queda la pantalla de acceso
+    const r = await cargarServidor(t);
+    if (r.ok) { $('acceso').classList.add('oculto'); return; }
+    if (r.auth) { setToken(''); $('accesoEstado').textContent = 'Token incorrecto.'; return; }
+    $('acceso').classList.add('oculto');
+    estadoCargaOffline();
+  })();
+})();
+</script>
+</body>
+</html>

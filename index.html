@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12100B">
+  <meta name="robots" content="noindex">
+  <title>Rifa Monarch · Bebes OPEN VIII</title>
+  <style>
+    :root {
+      --noche: #12100B;
+      --noche-2: #1B1811;
+      --oro: #C8A951;
+      --oro-luz: #E8D9A8;
+      --hueso: #EDE7D9;
+      --gris: #8C8474;
+      --rojo: #E0A080;
+      --wa: #25D366;
+      --display: "Didot", "Bodoni MT", "Bodoni 72", "Playfair Display", "Georgia", "Times New Roman", serif;
+      --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--noche); color-scheme: dark; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: var(--ui);
+      font-size: 17px;
+      line-height: 1.45;
+      color: var(--hueso);
+      background:
+        radial-gradient(ellipse 120% 60% at 50% -10%, rgba(200,169,81,.18), transparent 60%),
+        var(--noche);
+      -webkit-font-smoothing: antialiased;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    main {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+    }
+    header { text-align: center; margin-bottom: 28px; }
+    header img {
+      width: 150px; max-width: 60%;
+      height: auto;
+      display: block;
+      margin: 0 auto 18px;
+    }
+    .rule {
+      width: 56px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--oro), transparent);
+      margin: 14px auto;
+    }
+    .torneo {
+      font-size: 12px;
+      letter-spacing: .14em;
+      color: var(--gris);
+      margin: 0;
+    }
+    h1 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: 34px;
+      line-height: 1.1;
+      color: var(--oro-luz);
+      margin: 10px 0 8px;
+      letter-spacing: .01em;
+    }
+    .lead {
+      margin: 0;
+      color: var(--gris);
+      font-size: 15px;
+    }
+    .lead strong { color: var(--hueso); font-weight: 500; }
+
+    form { display: block; }
+    .campo { margin-bottom: 18px; }
+    label.titulo {
+      display: block;
+      font-size: 13px;
+      letter-spacing: .08em;
+      color: var(--oro);
+      margin-bottom: 8px;
+    }
+    input[type="text"], input[type="tel"] {
+      display: block;
+      width: 100%;
+      font: inherit;
+      font-size: 19px;
+      color: var(--hueso);
+      background: var(--noche-2);
+      border: 1px solid rgba(200,169,81,.35);
+      border-radius: 10px;
+      padding: 16px 16px;
+      min-height: 58px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input::placeholder { color: rgba(140,132,116,.7); }
+    input:focus {
+      border-color: var(--oro);
+      box-shadow: 0 0 0 3px rgba(200,169,81,.18);
+    }
+    input[aria-invalid="true"] { border-color: var(--rojo); }
+    input[type="tel"] { letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+    .ayuda { font-size: 13px; color: var(--gris); margin: 6px 2px 0; min-height: 1em; }
+    .ayuda.error { color: var(--rojo); }
+
+    .consent {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 14px 14px;
+      margin: 4px 0 22px;
+      border: 1px solid rgba(200,169,81,.2);
+      border-radius: 10px;
+      background: rgba(27,24,17,.6);
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--hueso);
+      cursor: pointer;
+    }
+    .consent input {
+      width: 26px; height: 26px; margin: 0;
+      accent-color: var(--oro);
+      cursor: pointer;
+    }
+    .consent small { display: block; color: var(--gris); margin-top: 6px; font-size: 12.5px; }
+    .consent a { color: var(--oro); text-decoration: underline; text-underline-offset: 2px; }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 60px;
+      padding: 16px 18px;
+      font: inherit;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      border-radius: 12px;
+      border: 0;
+      cursor: pointer;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s, opacity .15s, filter .15s;
+    }
+    .btn:active { transform: scale(.985); }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .btn-oro {
+      color: var(--noche);
+      background: linear-gradient(180deg, var(--oro-luz), var(--oro));
+      box-shadow: 0 6px 22px rgba(200,169,81,.25);
+    }
+    .btn-wa {
+      color: #fff;
+      background: var(--wa);
+      box-shadow: 0 6px 22px rgba(37,211,102,.25);
+    }
+    .btn-wa svg { width: 26px; height: 26px; flex: none; }
+    .btn-fantasma {
+      color: var(--oro);
+      background: transparent;
+      border: 1px solid rgba(200,169,81,.45);
+      min-height: 52px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .aviso-global {
+      display: none;
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(224,160,128,.5);
+      background: rgba(224,160,128,.08);
+      color: var(--hueso);
+      font-size: 15px;
+    }
+    .aviso-global.visible { display: block; }
+    .aviso-global strong { color: var(--rojo); }
+
+    .pie {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--gris);
+      letter-spacing: .04em;
+    }
+
+    /* Estado de confirmación */
+    #listo { display: none; text-align: center; }
+    #listo.visible { display: block; }
+    .sello {
+      width: 84px; height: 84px;
+      margin: 8px auto 20px;
+      border-radius: 50%;
+      border: 1px solid var(--oro);
+      display: grid; place-items: center;
+      position: relative;
+      box-shadow: 0 0 0 8px rgba(200,169,81,.08), 0 0 40px rgba(200,169,81,.15);
+    }
+    .sello::after {
+      content: "";
+      position: absolute; inset: 6px;
+      border-radius: 50%;
+      border: 1px dashed rgba(200,169,81,.35);
+    }
+    .sello svg { width: 34px; height: 34px; }
+    #listo h2 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: 32px;
+      line-height: 1.12;
+      color: var(--oro-luz);
+      margin: 0 0 10px;
+    }
+    #listo p { color: var(--gris); font-size: 15.5px; margin: 0 0 8px; }
+    #listo p strong { color: var(--hueso); font-weight: 500; }
+    .hora {
+      font-family: var(--display);
+      font-size: 15px;
+      color: var(--oro);
+      margin: 14px 0 26px !important;
+      letter-spacing: .04em;
+    }
+    .nota-wa { font-size: 13.5px; margin-top: 14px !important; }
+
+    @media (prefers-reduced-motion: no-preference) {
+      #listo.visible { animation: entra .45s ease-out both; }
+      @keyframes entra { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: none;} }
+    }
+    @media (min-width: 600px) {
+      main { padding-top: 56px; }
+      h1 { font-size: 40px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="/monarch.png" alt="Monarch Timepieces" width="150" height="48">
+    <p class="torneo">Bebes OPEN · VIII Edición · Terralta Country Club</p>
+    <div class="rule" aria-hidden="true"></div>
+    <h1>Rifa del reloj Monarch</h1>
+    <p class="lead">Regístrate para participar. El sorteo se hace en la premiación, <strong>solo entre quienes se registren hoy</strong>.</p>
+  </header>
+
+  <section id="registro">
+    <div class="aviso-global" id="avisoGlobal" role="alert"></div>
+
+    <form id="form" novalidate>
+      <div class="campo">
+        <label class="titulo" for="nombre">Nombre completo</label>
+        <input type="text" id="nombre" name="nombre" autocomplete="name" autocapitalize="words"
+               placeholder="Nombre y apellido" maxlength="80" required>
+        <div class="ayuda" id="ayudaNombre"></div>
+      </div>
+
+      <div class="campo">
+        <label class="titulo" for="celular">Celular</label>
+        <input type="tel" id="celular" name="celular" inputmode="numeric" autocomplete="tel-national"
+               placeholder="81 1234 5678" maxlength="12" required>
+        <div class="ayuda" id="ayudaCelular">10 dígitos, sin lada internacional.</div>
+      </div>
+
+      <label class="consent" for="permiso">
+        <input type="checkbox" id="permiso" name="permiso" required>
+        <span>
+          Autorizo a <strong>Monarch Timepieces</strong> a guardar mi nombre y celular para
+          participar en esta rifa y para contactarme sobre sus relojes y eventos.
+          <small>Tus datos los usa únicamente Monarch Timepieces, no se comparten con terceros
+          y puedes pedir que se borren en cualquier momento escribiendo al WhatsApp de Monarch.
+          Conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.</small>
+        </span>
+      </label>
+
+      <button type="submit" class="btn btn-oro" id="enviar">Registrarme en la rifa</button>
+    </form>
+
+    <p class="pie">Un registro por persona · Debes estar presente en la premiación para reclamar el premio</p>
+  </section>
+
+  <section id="listo" aria-live="polite">
+    <div class="sello" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#C8A951" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12.5l5 5L20 6.5"/>
+      </svg>
+    </div>
+    <h2 id="tituloListo">Listo, <span id="nombrePila"></span>.</h2>
+    <p id="textoListo">Ya estás en la rifa del reloj Monarch. El sorteo es en la premiación y <strong>tienes que estar ahí</strong> para ganarlo.</p>
+    <p class="hora" id="horaListo"></p>
+
+    <a class="btn btn-wa" id="btnWa" href="https://chat.whatsapp.com/INdPGzsGMmnFEICkgCjch0" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2m0 1.67c4.55 0 8.24 3.7 8.24 8.24 0 4.55-3.69 8.24-8.24 8.24-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.54 3.7-8.24 8.24-8.24M8.53 7.33c-.16 0-.43.06-.66.31-.22.25-.87.86-.87 2.07 0 1.22.89 2.39 1 2.56.14.17 1.76 2.67 4.25 3.73.59.27 1.05.42 1.41.53.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.16-.48-.27-.25-.14-1.47-.74-1.69-.82-.23-.08-.37-.12-.56.12-.16.25-.64.81-.78.97-.15.17-.29.19-.53.07-.26-.13-1.06-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.12-.24-.01-.39.11-.5.11-.11.27-.29.37-.44.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.11-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43-.14 0-.3-.01-.47-.01"/></svg>
+      Unirme al grupo de Monarch
+    </a>
+    <p class="nota-wa">Al tocar el botón se abre WhatsApp. Ahí confirmas tú mismo que quieres entrar al grupo; nosotros no podemos agregarte automáticamente.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  const form = document.getElementById('form');
+  const nombre = document.getElementById('nombre');
+  const celular = document.getElementById('celular');
+  const permiso = document.getElementById('permiso');
+  const enviar = document.getElementById('enviar');
+  const ayudaNombre = document.getElementById('ayudaNombre');
+  const ayudaCelular = document.getElementById('ayudaCelular');
+  const avisoGlobal = document.getElementById('avisoGlobal');
+  const CEL_AYUDA = '10 dígitos, sin lada internacional.';
+
+  // Formato en vivo: 81 1234 5678
+  function formatea(digitos) {
+    const d = digitos.replace(/\D/g, '').slice(0, 10);
+    if (d.length <= 2) return d;
+    if (d.length <= 6) return d.slice(0, 2) + ' ' + d.slice(2);
+    return d.slice(0, 2) + ' ' + d.slice(2, 6) + ' ' + d.slice(6);
+  }
+  celular.addEventListener('input', function () {
+    const antes = celular.value;
+    const nuevo = formatea(antes);
+    if (antes !== nuevo) celular.value = nuevo;
+    // Mantiene el cursor al final (lo natural cuando escribes de pie con una mano).
+    celular.setSelectionRange(celular.value.length, celular.value.length);
+    marcaCel('');
+  });
+  nombre.addEventListener('input', function () { marcaNombre(''); });
+
+  function marcaNombre(msg) {
+    ayudaNombre.textContent = msg;
+    ayudaNombre.classList.toggle('error', !!msg);
+    nombre.setAttribute('aria-invalid', msg ? 'true' : 'false');
+  }
+  function marcaCel(msg) {
+    ayudaCelular.textContent = msg || CEL_AYUDA;
+    ayudaCelular.classList.toggle('error', !!msg);
+    celular.setAttribute('aria-invalid', msg ? 'true' : 'false');
+  }
+  function avisa(html) {
+    avisoGlobal.innerHTML = html;
+    avisoGlobal.classList.toggle('visible', !!html);
+    if (html) avisoGlobal.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function valida() {
+    let ok = true;
+    const n = nombre.value.replace(/\s+/g, ' ').trim();
+    const c = celular.value.replace(/\D/g, '');
+    if (n.length < 3) { marcaNombre('Escribe tu nombre completo.'); ok = false; }
+    if (c.length !== 10) { marcaCel('Revisa el número: deben ser 10 dígitos.'); ok = false; }
+    if (!permiso.checked) {
+      avisa('Necesitamos tu autorización para anotarte. Marca la casilla de arriba.');
+      ok = false;
+    } else {
+      avisa('');
+    }
+    return ok ? { nombre: n, celular: c, permiso: true } : null;
+  }
+
+  function horaLocal(iso) {
+    const d = iso ? new Date(iso) : new Date();
+    if (isNaN(d)) return '';
+    return d.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function muestraListo(datos, resp) {
+    const pila = datos.nombre.split(' ')[0];
+    document.getElementById('nombrePila').textContent = pila;
+    const hora = horaLocal(resp && resp.creado_en);
+    if (resp && resp.repetido) {
+      document.getElementById('tituloListo').textContent = pila + ', ya estabas registrado.';
+      document.getElementById('textoListo').innerHTML =
+        'Este celular ya estaba en la rifa. No hace falta hacer nada más: <strong>tienes que estar en la premiación</strong> para ganar.';
+      document.getElementById('horaListo').textContent = '';
+    } else {
+      document.getElementById('horaListo').textContent = hora ? 'Registro recibido a las ' + hora : '';
+    }
+    document.getElementById('registro').style.display = 'none';
+    const listo = document.getElementById('listo');
+    listo.classList.add('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function envia(datos) {
+    const ctrl = new AbortController();
+    const t = setTimeout(function () { ctrl.abort(); }, 15000);
+    try {
+      const r = await fetch('/api/registro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos),
+        signal: ctrl.signal,
+      });
+      let cuerpo = null;
+      try { cuerpo = await r.json(); } catch (e) { cuerpo = null; }
+      if (r.ok && cuerpo && cuerpo.ok) return cuerpo;
+      if (r.status === 400 && cuerpo && cuerpo.error) {
+        return { ok: false, validacion: cuerpo.error };
+      }
+      return { ok: false };
+    } catch (e) {
+      return { ok: false };
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  form.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    const datos = valida();
+    if (!datos) return;
+
+    enviar.disabled = true;
+    enviar.textContent = 'Guardando…';
+    const resp = await envia(datos);
+    enviar.disabled = false;
+    enviar.textContent = 'Registrarme en la rifa';
+
+    if (resp.ok) {
+      muestraListo(datos, resp);
+      return;
+    }
+    if (resp.validacion) {
+      avisa(resp.validacion);
+      return;
+    }
+    // Falla de red o del servidor: no lo escondemos.
+    avisa('<strong>No pudimos guardar tu registro.</strong> Puede ser la señal. ' +
+          'Intenta de nuevo en un momento o <strong>repórtate con el staff de Monarch</strong> en el stand para anotarte a mano.');
+  });
+})();
+</script>
+</body>
+</html>
